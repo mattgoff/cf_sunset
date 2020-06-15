@@ -1,0 +1,139 @@
+﻿@page "/"
+@using Models
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-2"></div>
+        <div class="col-sm-8">
+            <EditForm Model = "@skyline" OnValidSubmit="@goBuildBuildSolution">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <InputText id="skylineString" @bind-Value="skyline.skylineString" />
+                <button class="btn btn-primary btn-sm">Submit</button>
+            </EditForm>
+            </div>
+        <div class="col-sm-2"></div>
+    </div>
+</div>
+
+<br /> <br />
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-2">
+        </div>
+        <div class="col-sm-8">
+            <h4>Buildings that can see the Sunset:  </h4>
+            <h4>@winners</h4>
+        </div>
+        <div class="col-sm-2"></div>
+    </div>
+</div>
+
+<br /> <br />
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-1"><img style="position:absolute; bottom:0; left:0;z-index: 1;" src="/images/sun_clear.png" alt=""></div>
+        <div class="col-sm-10">
+            <BarChart @ref="barChart" TItem="double" />
+            </div>
+        <div class="col-sm-1"></div>
+    </div>
+</div>
+
+
+
+@code {
+
+    private SkylineModel skyline = new SkylineModel();
+
+    BarChart<double> barChart;
+    private List<double> buildingsDoubleList = new List<double>();
+
+    private String winners = "";
+    private List<string> Labels = new List<string> { "Horizon" };
+    private List<string> backgroundColors = new List<string>();
+    private List<string> borderColors = new List<string>();
+
+    protected override async Task OnAfterRenderAsync( bool firstRender )
+    {
+
+        if ( firstRender )
+        {
+            CanSeeSunSet();
+            await HandleRedraw();
+        }
+    }
+
+    async Task HandleRedraw()
+    {
+        await barChart.Clear();
+        await barChart.AddLabel( Labels.ToArray() );
+        await barChart.AddDataSet( BarChartDataset() );
+        await barChart.Update();
+    }
+
+    BarChartDataset<double> BarChartDataset()
+    {
+        return new BarChartDataset<double>
+        {
+            Label = "Buldings frome West to East",
+            Data = buildingsDoubleList,
+            BackgroundColor = backgroundColors,
+            BorderColor = borderColors,
+            BorderWidth = 3,
+        };
+    }
+
+    public void CanSeeSunSet()
+        {
+            backgroundColors.Add( ChartColor.FromRgba( 0, 0, 0, 0.2f ) );
+            borderColors.Add( ChartColor.FromRgba( 0, 0, 0, 1f ));
+            for (var i = 1; i < buildingsDoubleList.Count(); i ++)
+            {
+                Labels.Add($"Bldg {i}");
+                double greatestGoingWest = buildingsDoubleList.Take(i).Max();
+                if (buildingsDoubleList[i] >= greatestGoingWest)
+                {
+                    backgroundColors.Add( ChartColor.FromRgba( 255, 159, 64, 0.2f ) );
+                    borderColors.Add( ChartColor.FromRgba( 255, 159, 64, 1f ));
+                    winners += $"Bldg {i}, ";
+                }
+                else
+                {
+                    backgroundColors.Add( ChartColor.FromRgba( 242, 241, 239, 0.2f ) );
+                    borderColors.Add( ChartColor.FromRgba( 191, 191, 191, 1f ) );
+                }
+            }
+            if (winners.Length > 1)
+            {
+                winners = winners.Substring(0, winners.Length -2);
+            }
+        }
+    private async Task goBuildBuildSolution()
+    {
+        List<double> tempList = new List<double>();
+
+        var splitString = skyline.skylineString.Split(",");
+        foreach (var item in splitString)
+        {
+            tempList.Add(Convert.ToDouble(item));
+        }
+
+        buildingsDoubleList.Clear();
+        buildingsDoubleList.Add(0);
+        buildingsDoubleList.AddRange(tempList);
+
+        borderColors.Clear();
+        backgroundColors.Clear();
+        Labels.Clear();
+        Labels.Add("Horizon");
+        winners= "";
+
+        CanSeeSunSet();
+        await HandleRedraw();
+
+    }
+}
