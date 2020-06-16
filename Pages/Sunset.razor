@@ -89,16 +89,16 @@
                 buildingsDoubleList.Add(6);
             }
             CanSeeSunSet();
-            await HandleRedraw();
+            HandleRedraw();
         }
     }
 
-    async Task HandleRedraw()
+    public void HandleRedraw()
     {
-        await barChart.Clear();
-        await barChart.AddLabel( Labels.ToArray() );
-        await barChart.AddDataSet( BarChartDataset() );
-        await barChart.Update();
+        barChart.Clear();
+        barChart.AddLabel( Labels.ToArray() );
+        barChart.AddDataSet( BarChartDataset() );
+        barChart.Update();
     }
 
     BarChartDataset<double> BarChartDataset()
@@ -138,7 +138,7 @@
                 winners = winners.Substring(0, winners.Length -2);
             }
         }
-    private async Task goBuildBuildSolution()
+    private void goBuildBuildSolution()
     {
         List<double> tempList = new List<double>();
         @* Console.WriteLine($"{winners} Winners.Length = {winners.Length}"); *@
@@ -161,7 +161,7 @@
         winners= "";
 
         CanSeeSunSet();
-        await HandleRedraw();
+        HandleRedraw();
 
     }
 }
