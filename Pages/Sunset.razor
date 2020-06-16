@@ -1,10 +1,12 @@
 ﻿@page "/"
 @using Models
 
+<br /> <br />
+
 <div class="container">
     <div class="row">
         <div class="col-sm-2"></div>
-        <div class="col-sm-8">
+        <div class="col-sm-8" style="text-align: center">
             <EditForm Model = "@skyline" OnValidSubmit="@goBuildBuildSolution">
             <DataAnnotationsValidator />
             <ValidationSummary />
@@ -25,8 +27,23 @@
         <div class="col-sm-2">
         </div>
         <div class="col-sm-8">
-            <h4>Building(s) with line of site to the horizon:  </h4>
-            <h4>@winners</h4>
+            @if (winners.Length == 6)
+            {
+                <h4 style="text-align: center;">Building with line of site to the horizon:  </h4>
+            }
+            else
+            {
+                <h4 style="text-align: center;">Buildings with line of site to the horizon:  </h4>
+            }
+
+            @if (winners.Length < 1 )
+                {
+                    <h4 style="text-align: center;">Bldg 1, Bldg 3</h4>
+                }
+            else
+                {
+                    <h4 style="text-align: center;">@winners</h4>
+                }
         </div>
         <div class="col-sm-2"></div>
     </div>
@@ -50,7 +67,7 @@
 
     private SkylineModel skyline = new SkylineModel();
 
-    BarChart<double> barChart;
+    private BarChart<double> barChart;
     private List<double> buildingsDoubleList = new List<double>();
 
     private String winners = "";
@@ -71,7 +88,7 @@
                 buildingsDoubleList.Add(7);
                 buildingsDoubleList.Add(6);
             }
-            await CanSeeSunSet();
+            CanSeeSunSet();
             await HandleRedraw();
         }
     }
@@ -88,7 +105,7 @@
     {
         return new BarChartDataset<double>
         {
-            Label = "Buldings frome West to East",
+            Label = "Buldings Heights",
             Data = buildingsDoubleList,
             BackgroundColor = backgroundColors,
             BorderColor = borderColors,
@@ -96,7 +113,7 @@
         };
     }
 
-    public async Task CanSeeSunSet()
+    public void CanSeeSunSet()
         {
             backgroundColors.Add( ChartColor.FromRgba( 0, 0, 0, 0.2f ) );
             borderColors.Add( ChartColor.FromRgba( 0, 0, 0, 1f ));
@@ -104,7 +121,7 @@
             {
                 Labels.Add($"Bldg {i}");
                 double greatestGoingWest = buildingsDoubleList.Take(i).Max();
-                if (buildingsDoubleList[i] >= greatestGoingWest)
+                if (buildingsDoubleList[i] > greatestGoingWest)
                 {
                     backgroundColors.Add( ChartColor.FromRgba( 255, 159, 64, 0.2f ) );
                     borderColors.Add( ChartColor.FromRgba( 255, 159, 64, 1f ));
@@ -124,7 +141,7 @@
     private async Task goBuildBuildSolution()
     {
         List<double> tempList = new List<double>();
-
+        @* Console.WriteLine($"{winners} Winners.Length = {winners.Length}"); *@
         var splitString = skyline.skylineString.Split(",");
         foreach (var item in splitString)
         {
@@ -137,8 +154,10 @@
 
         borderColors.Clear();
         backgroundColors.Clear();
+
         Labels.Clear();
         Labels.Add("Horizon");
+
         winners= "";
 
         CanSeeSunSet();
